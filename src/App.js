@@ -4,6 +4,10 @@ import blogService from './services/blogs'
 import loginService from './services/login'
 import Notification from './components/notification'
 import Error from './components/error'
+import {Togglable} from './components/Togglable'
+import LoginForm from './components/LoginForm'
+import BlogForm from './components/BlogForm'
+
 
 class App extends React.Component {
   constructor(props) {
@@ -33,9 +37,10 @@ class App extends React.Component {
       blogService.setToken(user.token)
     }
 
-    blogService.getAll().then(blogs =>
+    blogService.getAll().then(blogs => {
+      blogs.sort(blogSort)
       this.setState({ blogs })
-    )
+    })
   }
 
   handleFieldChange = (event) => {
@@ -111,6 +116,28 @@ class App extends React.Component {
     setTimeout(() => this.setState({error: null}), 2000)
   }
 
+  addLike = (blog) => {
+    return(
+      async () => {
+        const {user, likes, author, title, url} = blog
+        const blogData = {
+          user: user._id,
+          likes: likes + 1,
+          author,
+          title,
+          url,
+        }
+        const updatedBlog = await blogService.update(blog.id, blogData)
+        const blogs = this.state.blogs.map((b) => {
+          console.log(b.id, updatedBlog.id)
+          return (b.id === updatedBlog.id) ? updatedBlog : b
+        }).sort(blogSort)
+        this.setState({blogs})
+        this.setNotification('Liked!')
+      }
+    )
+  }
+
   render() {
 
     if (this.state.user === null) {
@@ -119,28 +146,12 @@ class App extends React.Component {
           <Notification message={this.state.notification} />
           <Error message={this.state.error} />
           <h2>Log in</h2>
-      
-          <form onSubmit={this.login}>
-            <div>
-              username:
-              <input
-                type="text"
-                name="username"
-                value={this.state.username}
-                onChange={this.handleFieldChange}
-              />
-            </div>
-            <div>
-              password:
-              <input
-                type="password"
-                name="password"
-                value={this.state.password}
-                onChange={this.handleFieldChange}
-              />
-            </div>
-            <button type="submit">kirjaudu</button>
-          </form>
+            <LoginForm
+              username={this.state.username}
+              password={this.state.password}
+              handleChange={this.handleFieldChange}
+              handleSubmit={this.login}
+            />
         </div>
       )
     }
@@ -154,36 +165,28 @@ class App extends React.Component {
           {this.state.user.name} logged in. <button onClick={this.logout}>logout</button>
         </p>
         {this.state.blogs.map(blog => 
-          <Blog key={blog.id} blog={blog}/>
+          <Blog 
+            key={blog.id} 
+            blog={blog}
+            handleLike={this.addLike}  
+          />
         )}
-          <div>
-    <h2>Create new</h2>
-
-    <form onSubmit={this.addBlog}>
-      <input
-        name="title"
-        value={this.state.title}
-        onChange={this.handleFieldChange}
-      />
-      <input
-        name="author"
-        value={this.state.author}
-        onChange={this.handleFieldChange}
-      />
-      <input
-        name="url"
-        value={this.state.url}
-        onChange={this.handleFieldChange}
-      />
-      <button type="submit">tallenna</button>
-    </form>
-  </div>
+        <div>
+          <Togglable buttonLabel='add new'>
+            <BlogForm
+              handleSubmit={this.addBlog}
+              handleChange={this.handleFieldChange}
+              url={this.state.url}
+              author={this.state.author}
+              title={this.state.title}
+            />
+          </Togglable>
+        </div>
       </div>
-      
     );
   }
 }
 
-
+const blogSort = (a, b) => b.likes - a.likes
 
 export default App;
