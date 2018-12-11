@@ -138,6 +138,23 @@ class App extends React.Component {
     )
   }
 
+  deleteBlog = (blog) => {
+    return (
+      async () => {
+        const id = blog.id
+        try {
+          await blogService.remove(id)
+          const blogs = this.state.blogs.filter(b => b.id !== id)
+          this.setState({blogs})
+          this.setNotification(`blog '${blog.title}' removed.`)
+        } catch (exception) {
+          console.error(exception)
+          this.setError('Could not remove blogpost')
+        }
+      }
+    )
+  }
+
   render() {
 
     if (this.state.user === null) {
@@ -168,7 +185,9 @@ class App extends React.Component {
           <Blog 
             key={blog.id} 
             blog={blog}
-            handleLike={this.addLike}  
+            handleLike={this.addLike}
+            handleDelete={this.deleteBlog}
+            user={this.state.user}
           />
         )}
         <div>
