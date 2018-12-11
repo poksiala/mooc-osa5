@@ -17,11 +17,14 @@ class Blog extends React.Component {
   render() {
     const { blog } = this.props
     return(
-      <div>
-        <div onClick={this.toggleVisibility}>
+      <div className="blog-container">
+        <div className="title-author" onClick={this.toggleVisibility}>
           {blog.title} by {blog.author}
         </div>
-        <HideableDiv visible={this.state.visible}>
+        <HideableDiv
+          className="hideable" 
+          visible={this.state.visible}
+        >
           <div><Url url={blog.url} /></div>
           <div>{blog.likes} <button onClick={this.props.handleLike(blog)}>like</button></div>
           {blog.user && <div>added by {blog.user.name}</div>}
