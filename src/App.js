@@ -84,6 +84,7 @@ class App extends React.Component {
 
   addBlog = async (event) => {
     event.preventDefault()
+    this.blogForm.toggleVisibility()
     const {title, author, url} = this.state
     try {
       const newBlog = await blogService
@@ -129,7 +130,6 @@ class App extends React.Component {
         }
         const updatedBlog = await blogService.update(blog.id, blogData)
         const blogs = this.state.blogs.map((b) => {
-          console.log(b.id, updatedBlog.id)
           return (b.id === updatedBlog.id) ? updatedBlog : b
         }).sort(blogSort)
         this.setState({blogs})
@@ -191,7 +191,7 @@ class App extends React.Component {
           />
         )}
         <div>
-          <Togglable buttonLabel='add new'>
+          <Togglable buttonLabel='add new' ref={component => this.blogForm = component}>
             <BlogForm
               handleSubmit={this.addBlog}
               handleChange={this.handleFieldChange}
